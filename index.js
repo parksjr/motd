@@ -43,7 +43,7 @@ function wrapText(str, maxLen = MAX_LEN) {
 }
 
 
-let cachedQuote = '';
+let cachedResponse = '';
 let cacheExpireTime = 0;
 
 function getEndOfDayTs() {
@@ -65,26 +65,26 @@ function getRandomQuote() {
 const server = http.createServer((req, res) => {
   const currentTime = Temporal.Now.instant().epochNanoseconds;
 
-  if (!cachedQuote || currentTime >= cacheExpireTime) {
-    cachedQuote = getRandomQuote();
-    cacheExpireTime = getEndOfDayTs();
-    console.log(`[CACHE EXPIRED] Temporal Engine selected new daily quote: "${cachedQuote}"`);
-  }
+  if (!cachedResponse || currentTime >= cacheExpireTime) {
+    const rawQuote = getRandomQuote();
+    const wrappedQuote = wrapText(rawQuote);
 
-  const formattedQuote = wrapText(cachedQuote);
-
-  const template = `====================================================================
+    cachedResponse = `====================================================================
 
   [motd.parksjr.tech] :: DAILY BROADCAST NODE
 
 ====================================================================
 
-  "${cachedQuote}"
+  "${wrappedQuote}"
   
 ====================================================================\n`;
 
+    cacheExpireTime = getEndOfDayTs();
+    console.log(`[CACHE EXPIRED] Temporal Engine selected new daily quote: "${rawQuote}"`);
+  }
+
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end(template);
+  res.end(cachedResponse);
 });
 
 server.listen(PORT, () => {
