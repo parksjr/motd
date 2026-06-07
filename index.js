@@ -17,6 +17,32 @@ const QUOTES = [
     "You know, you're not supposed to go in there... but we don't really care about that."
 ];
 
+const MAX_LEN = 65;
+
+function wrapText(str, maxLen = MAX_LEN) {
+    if (str.length <= maxLen) return str;
+
+    const words = str.split(' ');
+    let curLine = '';
+    let result = [];
+
+    for (const word of words) {
+        if ((curLine + word).length > maxLen) {
+            result.push(curLine.trim());
+            curLine = word + ' ';
+        } else {
+            curLine += word + ' ';
+        }
+    }
+
+    if (curLine.trim().length > 0) {
+        result.push(curLine.trim())
+    }
+
+    return result.join('\n  ');
+}
+
+
 let cachedQuote = '';
 let cacheExpireTime = 0;
 
@@ -44,6 +70,8 @@ const server = http.createServer((req, res) => {
     cacheExpireTime = getEndOfDayTs();
     console.log(`[CACHE EXPIRED] Temporal Engine selected new daily quote: "${cachedQuote}"`);
   }
+
+  const formattedQuote = wrapText(cachedQuote);
 
   const template = `====================================================================
 
